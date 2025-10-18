@@ -3,10 +3,32 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"net/http"
+	"encoding/json"
 )
+
+type Movie struct {
+	Adult            	bool      `json:"adult"`
+	BackdropPath     	string    `json:"backdrop_path"`
+	GenreIDs          []int     `json:"genre_ids"`
+	ID               	int       `json:"id"`
+	OriginalLanguage 	string    `json:"original_language"`
+	OriginalTitle    	string    `json:"original_title"`
+	Overview         	string    `json:"overview"`
+	Popularity       	float64   `json:"popularity"`
+	PosterPath       	string    `json:"poster_path"`
+	ReleaseDate      	string    `json:"release_date"`
+	Title            	string    `json:"title"`
+	Video            	bool      `json:"video"`
+	VoteAverage      	float64   `json:"vote_average"`
+	VoteCount        	int       `json:"vote_count"`
+}
+
+type Dates struct{
+	Maximum						string		`json:"maximum"`
+	Minimum						string		`json:"minimum"`					
+}
 
 
 func main(){
@@ -31,11 +53,19 @@ func main(){
 	check(err)
 	defer response.Body.Close()
 
-	
-	body, err := io.ReadAll(response.Body)
-	check(err)
+		// Root JSON structure (only need "results")
+	var root struct {
+		Results []Movie `json:"results"`
+		Dates Dates `json:"dates"`
+	}
 
-	fmt.Println(string(body))
+	check(json.NewDecoder(response.Body).Decode(&root))
+
+		// Print results
+	for _, m := range root.Results {
+		fmt.Println(m.Title, "-", m.ReleaseDate)
+	}
+
 }
 
 func check(e error) {
